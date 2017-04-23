@@ -3,16 +3,17 @@
 // http://blog.philippheckel.com/2014/03/01/cipherinputstream-for-aead-modes-is-broken-in-jdk7-gcm/
 // March 2014, Philipp C. Heckel
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
+import java.math.BigInteger;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
 import java.security.SecureRandom;
 import java.security.Security;
+import java.util.BitSet;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
@@ -23,6 +24,7 @@ import javax.crypto.SecretKey;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 
+import com.sun.javafx.binding.StringFormatter;
 import org.bouncycastle.crypto.engines.AESEngine;
 import org.bouncycastle.crypto.modes.AEADBlockCipher;
 import org.bouncycastle.crypto.modes.GCMBlockCipher;
@@ -31,6 +33,8 @@ import org.bouncycastle.crypto.params.KeyParameter;
 import org.bouncycastle.crypto.io.InvalidCipherTextIOException;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.util.Arrays;
+
+import org.apache.commons.codec.binary.Hex;
 
 public class CipherInputStreamIssuesTests {
 	private static final SecureRandom secureRandom = new SecureRandom();
@@ -41,14 +45,14 @@ public class CipherInputStreamIssuesTests {
 	
 	public static void main(String args[]) throws Exception {
 		System.out.println("----------------------------------------------------------------------------------");
-
-		testA_JavaxCipherWithAesGcm();
-		testB_JavaxCipherInputStreamWithAesGcm();
-		testC_JavaxCipherInputStreamWithAesGcmFixed();
-		testD_BouncyCastleCipherInputStreamWithAesGcm();
-		testE_BouncyCastleCipherInputStreamWithAesGcmLongPlaintext();
-		testF_BouncyCastleFixedCipherInputStreamWithAesGcmLongPlaintextNoTampering();
-		testG_BouncyCastleFixedCipherInputStreamWithAesGcmLongPlaintextAndTampering();
+		testEncodeWithAesGcm();
+//		testA_JavaxCipherWithAesGcm();
+//		testB_JavaxCipherInputStreamWithAesGcm();
+//		testC_JavaxCipherInputStreamWithAesGcmFixed();
+//		testD_BouncyCastleCipherInputStreamWithAesGcm();
+//		testE_BouncyCastleCipherInputStreamWithAesGcmLongPlaintext();
+//		testF_BouncyCastleFixedCipherInputStreamWithAesGcmLongPlaintextNoTampering();
+//		testG_BouncyCastleFixedCipherInputStreamWithAesGcmLongPlaintextAndTampering();
 
 		System.out.println("----------------------------------------------------------------------------------");
 	}
@@ -310,6 +314,54 @@ public class CipherInputStreamIssuesTests {
 		secureRandom.nextBytes(randomByteArray);
 
 		return randomByteArray;
-	}	
+	}
+
+	public static void testEncodeWithAesGcm() throws InvalidKeyException, InvalidAlgorithmParameterException, IOException, NoSuchAlgorithmException, NoSuchProviderException, NoSuchPaddingException {
+
+		//aes key
+		byte[] randomKey = "1234567890123456".getBytes("ASCII");
+
+		//要加密的内容，或其它二进制数据
+		byte[] originalPlaintext = "hello world".getBytes("ASCII");
+
+		//nonce
+		byte[] randomIv;
+
+		//注意是unsigned long 无符号64bit
+		long sequence = 1;
+
+		//组装nonce
+		ByteBuffer buffer = ByteBuffer.allocate(12);
+		buffer.order(ByteOrder.BIG_ENDIAN);
+		//salt
+		buffer.putInt(0x79da8be5);
+		//sequence
+		buffer.putLong(sequence);
+		randomIv = buffer.array();
+
+		byte[] originalCiphertext = encryptWithAesGcm(originalPlaintext, randomKey, randomIv);
+
+		buffer = ByteBuffer.allocate(8);
+		buffer.putLong(sequence);
+
+		System.out.println("==>加密后: "+Hex.encodeHexString(originalCiphertext)+Hex.encodeHexString(buffer.array()));
+
+		// Attack / alter ciphertext (an attacker would do this!)
+		byte[] alteredCiphertext = Arrays.clone(originalCiphertext);
+		alteredCiphertext[8] = (byte) (alteredCiphertext[8] ^ 0x08);
+
+		// Decrypt with BouncyCastle implementation of CipherInputStream
+		AEADBlockCipher cipher = new GCMBlockCipher(new AESEngine());
+		cipher.init(false, new AEADParameters(new KeyParameter(randomKey), 128, randomIv));
+
+		try {
+			readFromStream(new org.bouncycastle.crypto.io.CipherInputStream(new ByteArrayInputStream(alteredCiphertext), cipher));
+
+			System.out.println("Test D: org.bouncycastle.crypto.io.CipherInputStream:        NOT OK, tampering not detected");
+		}
+		catch (InvalidCipherTextIOException e) {
+			System.out.println("Test D: org.bouncycastle.crypto.io.CipherInputStream:        OK, tampering detected");
+		}
+	}
 }
 
