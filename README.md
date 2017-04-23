@@ -8,3 +8,5 @@ Without it, it doesn't make much sense.
     cd cipherinputstream-aes-gcm
     ./gradlew run                 (on Linux)
     gradle run                    (on Windows)
+    
+加密方法在CipherInputStreamIssuresTests文件testEncodeWithAesGcm
