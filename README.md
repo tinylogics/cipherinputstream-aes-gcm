@@ -9,4 +9,4 @@ Without it, it doesn't make much sense.
     ./gradlew run                 (on Linux)
     gradle run                    (on Windows)
     
-加密方法在CipherInputStreamIssuresTests文件testEncodeWithAesGcm
+please refer to testEncodeWithAesGcm in CipherInputStreamIssuresTests.java.
