@@ -323,7 +323,7 @@ public class CipherInputStreamIssuesTests {
 		//aes key
 		byte[] randomKey = "1234567890123456".getBytes("ASCII");
 
-		//the text or protobuf binary data need to encrypt. 
+		//the binary data of proto message AccountKey in account.proto need to encrypt. 
 		byte[] originalPlaintext = "hello world".getBytes("ASCII");
 
 		//nonce
@@ -337,7 +337,7 @@ public class CipherInputStreamIssuesTests {
 		//network order
 		buffer.order(ByteOrder.BIG_ENDIAN);
 		//salt
-		buffer.putInt(0x79da8be5);
+		buffer.putInt(123456);
 		//sequence
 		buffer.putLong(sequence);
 		randomIv = buffer.array();
@@ -347,7 +347,7 @@ public class CipherInputStreamIssuesTests {
 		buffer = ByteBuffer.allocate(8);
 		buffer.putLong(sequence);
 		
-		//account key
+		//this is accountkey used in app SDK when register.
 		string accountkey = Hex.encodeHexString(originalCiphertext)+Hex.encodeHexString(buffer.array());
 		
 		System.out.println("==>after encrypted: "+ accountkey);
