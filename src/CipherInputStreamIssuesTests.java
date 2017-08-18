@@ -316,22 +316,25 @@ public class CipherInputStreamIssuesTests {
 		return randomByteArray;
 	}
 
+	
+	//build login account key
 	public static void testEncodeWithAesGcm() throws InvalidKeyException, InvalidAlgorithmParameterException, IOException, NoSuchAlgorithmException, NoSuchProviderException, NoSuchPaddingException {
 
 		//aes key
 		byte[] randomKey = "1234567890123456".getBytes("ASCII");
 
-		//要加密的内容，或其它二进制数据
+		//the text or protobuf binary data need to encrypt. 
 		byte[] originalPlaintext = "hello world".getBytes("ASCII");
 
 		//nonce
 		byte[] randomIv;
 
-		//注意是unsigned long 无符号64bit
+		//NOTE: sequence should be unsigned long
 		long sequence = 1;
 
-		//组装nonce
+		//build nonce
 		ByteBuffer buffer = ByteBuffer.allocate(12);
+		//network order
 		buffer.order(ByteOrder.BIG_ENDIAN);
 		//salt
 		buffer.putInt(0x79da8be5);
@@ -343,8 +346,11 @@ public class CipherInputStreamIssuesTests {
 
 		buffer = ByteBuffer.allocate(8);
 		buffer.putLong(sequence);
-
-		System.out.println("==>加密后: "+Hex.encodeHexString(originalCiphertext)+Hex.encodeHexString(buffer.array()));
+		
+		//account key
+		string accountkey = Hex.encodeHexString(originalCiphertext)+Hex.encodeHexString(buffer.array());
+		
+		System.out.println("==>after encrypted: "+ accountkey);
 
 		// Attack / alter ciphertext (an attacker would do this!)
 		byte[] alteredCiphertext = Arrays.clone(originalCiphertext);
