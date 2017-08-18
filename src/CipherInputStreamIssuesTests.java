@@ -329,7 +329,7 @@ public class CipherInputStreamIssuesTests {
 		//nonce
 		byte[] randomIv;
 
-		//NOTE: sequence should be unsigned long
+		//NOTE: sequence should be unsigned 64bit, and should increment when every login.
 		long sequence = 1;
 
 		//build nonce
