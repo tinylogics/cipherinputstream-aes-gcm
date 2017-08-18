@@ -9,4 +9,4 @@ Without it, it doesn't make much sense.
     ./gradlew run                 (on Linux)
     gradle run                    (on Windows)
     
-please refer to testEncodeWithAesGcm in CipherInputStreamIssuresTests.java.
+Build login accountkey, please refer to testEncodeWithAesGcm in CipherInputStreamIssuresTests.java.
