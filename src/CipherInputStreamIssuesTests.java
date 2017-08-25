@@ -324,6 +324,11 @@ public class CipherInputStreamIssuesTests {
 		byte[] randomKey = "1234567890123456".getBytes("ASCII");
 
 		//the binary data of proto message AccountKey in account.proto need to encrypt. 
+		//
+		// generate java file: protoc --java_out=./ account.proto
+		// Account.AccountKey.Builder builder = Account.AccountKey.newBuilder();
+		// builder.set... //use setter to initialize all fields of AccountKey
+		// byte[] originalPlaintext = builder.build().toByteArray();
 		byte[] originalPlaintext = "hello world".getBytes("ASCII");
 
 		//nonce
@@ -348,7 +353,7 @@ public class CipherInputStreamIssuesTests {
 		buffer.putLong(sequence);
 		
 		//this is accountkey used in app SDK when register.
-		string accountkey = Hex.encodeHexString(originalCiphertext)+Hex.encodeHexString(buffer.array());
+		String accountkey = Hex.encodeHexString(originalCiphertext)+Hex.encodeHexString(buffer.array());
 		
 		System.out.println("==>after encrypted: "+ accountkey);
 
