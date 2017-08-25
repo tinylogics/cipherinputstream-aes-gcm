@@ -318,6 +318,7 @@ public class CipherInputStreamIssuesTests {
 
 	
 	//build login account key
+	//NOTE: should not do it in APP.
 	public static void testEncodeWithAesGcm() throws InvalidKeyException, InvalidAlgorithmParameterException, IOException, NoSuchAlgorithmException, NoSuchProviderException, NoSuchPaddingException {
 
 		//aes key
