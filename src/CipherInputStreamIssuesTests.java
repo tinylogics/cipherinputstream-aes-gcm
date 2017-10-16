@@ -342,8 +342,8 @@ public class CipherInputStreamIssuesTests {
 		ByteBuffer buffer = ByteBuffer.allocate(12);
 		//network order
 		buffer.order(ByteOrder.BIG_ENDIAN);
-		//salt
-		buffer.putInt(123456);
+		//salt, use hex format for unsigned integer because java has no unsigned type.
+		buffer.putInt(0x1e240);//equal to 123456
 		//sequence
 		buffer.putLong(sequence);
 		randomIv = buffer.array();
